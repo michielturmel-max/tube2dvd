@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.py.bak
+*.py.new
+
+# ISO's en build-artifacts - nooit in git
+*.iso
+*.img
+*.udf
+build/
+stage-data/
+dvdroot/
+
+# Bibliotheekdata (grote video's, plaatjes, logs) hoort niet in de repo
+videos/
+thumbs/
+library.json
+discs.json
+categories.json
+index.html
+*.log
+
+# Lokale omgeving
+.env
+.venv/
+venv/
