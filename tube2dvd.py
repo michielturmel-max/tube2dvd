@@ -1518,6 +1518,7 @@ body.classic .newsfig .article .origin{color:#7fc4ff}
                     photo = (
                         '<video playsinline preload="none"'
                         ' onclick="if(!this.controls){this.controls=true;this.currentTime=0;this.play().catch(function(){})}"'
+                        ' onended="this.pause();this.load();this.controls=false"'
                         + vposter + '><source src="' + escape(i["video"])
                         + '" type="video/mp4"></video>'
                     )
@@ -1558,7 +1559,7 @@ body.classic .newsfig .article .origin{color:#7fc4ff}
             poster = f' poster="{escape(i["thumb"])}"' if i.get("thumb") else ""
             parts.append(
                 "<figure" + scrap_decor(i["id"]) + ">"
-                f'<video playsinline preload="none" onclick="if(!this.controls){{this.controls=true;this.currentTime=0;this.play().catch(function(){{}})}}"{poster}>'
+                f'<video playsinline preload="none" onclick="if(!this.controls){{this.controls=true;this.currentTime=0;this.play().catch(function(){{}})}}" onended="this.pause();this.load();this.controls=false"{poster}>'
                 f'<source src="{escape(i["file"])}" type="video/mp4">'
                 "</video>"
                 "<figcaption>"
