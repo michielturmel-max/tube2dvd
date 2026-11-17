@@ -302,7 +302,8 @@ tube2dvd --json -d ~/Videos/dvd-2026 burn --all -y         # ook al gebrande ite
 | Nieuws blijft leeg | controleer de plugin met `TUBE2DVD_NEWS=... tube2dvd --json news --count 3` |
 | Server start niet | poort al in gebruik? kies `--port 9000`; kijk in `build/web-requests.log` en het serverlog |
 
-Zie ook [AGENTS.md](AGENTS.md) voor de agent-regels en korte commando's.
+Zie ook [AGENTS.md](AGENTS.md) voor de agent-regels en korte commando's en
+[RELEASE.md](RELEASE.md) voor het zelf maken van een tag en release via GitHub.
 
 ## Repository
 
