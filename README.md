@@ -7,7 +7,7 @@ schijf af; er wordt niets naar MPEG-2 omgezet. (De oudere DVD-Video-route bestaa
 nog via `--mode video`, maar is niet de standaard.)
 
 Gebouwd voor Arch/Omarchy, maar draait overal waar Python 3, `yt-dlp` en
-`ffmpeg` beschikbaar zijn. Versie: **1.1.0**.
+`ffmpeg` beschikbaar zijn. Versie: **1.2.0**.
 
 ## Inhoud
 

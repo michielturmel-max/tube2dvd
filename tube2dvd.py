@@ -33,7 +33,7 @@ DEFAULT_CATEGORIES = [
     "Overig",
 ]
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 UPDATE_REPO = os.environ.get("TUBE2DVD_REPO", "michielturmel-max/tube2dvd")
 
 DISC_BYTES = 4_700_000_000
