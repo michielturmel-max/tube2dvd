@@ -92,7 +92,7 @@ De nieuwsplugin staat standaard op
 ## Snelstart
 
 ```bash
-git clone <repository-url> tube2dvd
+git clone https://github.com/michielturmel-max/tube2dvd.git
 cd tube2dvd
 ./install.sh
 tube2dvd --json doctor
@@ -102,7 +102,7 @@ tube2dvd --json -d ~/Videos/dvd-2026 serve --port 8769
 Open daarna `http://127.0.0.1:8769/`. Voor je telefoon in hetzelfde netwerk:
 `./tube2dvd.py --json -d ~/Videos/dvd-2026 serve --port 8769 --tailscale` en open
 het Tailscale-IP of de MagicDNS-naam van de machine, bijvoorbeeld
-`http://omarchy-3.tail795b4b.ts.net:8769/`.
+`http://jouw-machine.tailXXXX.ts.net:8769/`.
 
 ## Installeren
 
