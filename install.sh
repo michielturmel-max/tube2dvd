@@ -5,10 +5,11 @@ set -euo pipefail
 SRC_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 PREFIX="${XDG_BIN_HOME:-$HOME/.local/bin}"
 DATA_DIR="${TUBE2DVD_DIR:-$HOME/Videos/tube2dvd}"
-PORT="8769"
+PORT="4000"
 MODE="symlink"
 DEPS=1
 DESKTOP=1
+SYSTEMD=0
 YES=0
 
 usage() {
@@ -17,10 +18,11 @@ Gebruik: ./install.sh [opties]
 
   --prefix DIR     Installatiemap voor commands (default ~/.local/bin)
   --dir DIR        Bibliotheekmap (default ~/Videos/tube2dvd)
-  --port N         Poort van de web-app (default 8769)
+  --port N         Poort van de web-app (default 4000)
   --copy           Kopieer het script i.p.v. een symlink te maken
   --no-deps        Controleer/Installeer systeemafhankelijkheden niet
   --no-desktop     Maak geen desktop-launcher
+  --systemd        Installeer en start een user-service (altijd op de achtergrond)
   -y, --yes        Geen bevestigingen (pacman --noconfirm)
   -h, --help       Deze help
 
@@ -39,6 +41,7 @@ while [[ $# -gt 0 ]]; do
     --copy) MODE="copy"; shift ;;
     --no-deps) DEPS=0; shift ;;
     --no-desktop) DESKTOP=0; shift ;;
+    --systemd) SYSTEMD=1; shift ;;
     -y|--yes) YES=1; shift ;;
     -h|--help) usage; exit 0 ;;
     *) echo "Onbekende optie: $1" >&2; usage >&2; exit 1 ;;
@@ -146,6 +149,46 @@ EOF
   info "Desktop-launcher: $DESKTOP_FILE"
 fi
 
+if [[ $SYSTEMD -eq 1 ]]; then
+  if command -v systemctl >/dev/null 2>&1; then
+    UNIT_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
+    UNIT="$UNIT_DIR/tube2dvd.service"
+    mkdir -p "$UNIT_DIR"
+    cat > "$UNIT" <<EOF
+[Unit]
+Description=tube2dvd webapp op poort $PORT
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=$SRC_DIR
+Environment="TUBE2DVD_DIR=$DATA_DIR"
+ExecStart="$BIN" --json serve --host 0.0.0.0 --port $PORT
+Restart=always
+RestartSec=5
+TimeoutStopSec=20
+
+[Install]
+WantedBy=default.target
+EOF
+    systemctl --user daemon-reload
+    systemctl --user enable tube2dvd.service
+    if systemctl --user is-active --quiet tube2dvd.service; then
+      systemctl --user restart tube2dvd.service
+    else
+      systemctl --user start tube2dvd.service
+    fi
+    info "Service actief: tube2dvd.service (poort $PORT, 0.0.0.0)"
+  else
+    info "systemctl niet gevonden; service niet geïnstalleerd"
+  fi
+fi
+
 mkdir -p "$DATA_DIR" "$DATA_DIR/build"
 info "Bibliotheek: $DATA_DIR"
-info "Klaar. Start met: $BIN --json -d '$DATA_DIR' serve --port $PORT"
+if [[ $SYSTEMD -eq 1 ]]; then
+  info "Klaar. URL: http://127.0.0.1:$PORT/ en http://<tailscale-ip>:$PORT/"
+else
+  info "Klaar. Start met: $BIN --json -d '$DATA_DIR' serve --port $PORT"
+fi

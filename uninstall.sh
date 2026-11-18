@@ -7,6 +7,7 @@ PREFIX="${XDG_BIN_HOME:-$HOME/.local/bin}"
 DATA_DIR="${TUBE2DVD_DIR:-$HOME/Videos/tube2dvd}"
 PURGE=0
 REMOVE_SOURCE=0
+SYSTEMD=0
 YES=0
 
 usage() {
@@ -17,6 +18,7 @@ Gebruik: ./uninstall.sh [opties]
   --dir DIR        Bibliotheekmap (default ~/Videos/tube2dvd)
   --purge-data     Verwijder ook de bibliotheek (video's, ISO's, index.html)
   --remove-source  Verwijder ook deze repository map
+  --systemd        Stop en verwijder ook de user-service
   -y, --yes        Geen bevestiging
   -h, --help       Deze help
 
@@ -30,6 +32,7 @@ while [[ $# -gt 0 ]]; do
     --dir) DATA_DIR="$2"; shift 2 ;;
     --purge-data) PURGE=1; shift ;;
     --remove-source) REMOVE_SOURCE=1; shift ;;
+    --systemd) SYSTEMD=1; shift ;;
     -y|--yes) YES=1; shift ;;
     -h|--help) usage; exit 0 ;;
     *) echo "Onbekende optie: $1" >&2; usage >&2; exit 1 ;;
@@ -55,6 +58,16 @@ fi
 if [[ -f "$SRC_DIR/tube2dvd.py.bak" ]]; then
   rm -f -- "$SRC_DIR/tube2dvd.py.bak"
   info "Verwijder backup van update"
+fi
+
+if [[ $SYSTEMD -eq 1 && -d "${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user" ]]; then
+  UNIT="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user/tube2dvd.service"
+  if [[ -f "$UNIT" ]] && command -v systemctl >/dev/null 2>&1; then
+    systemctl --user disable --now tube2dvd.service 2>/dev/null || true
+    info "Service gestopt en uitgeschakeld"
+  fi
+  rm -f -- "$UNIT"
+  info "Verwijder $UNIT"
 fi
 
 if [[ $PURGE -eq 1 && -d "$DATA_DIR" ]]; then

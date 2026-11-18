@@ -5,7 +5,7 @@ set -euo pipefail
 SRC_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 PREFIX="${XDG_BIN_HOME:-$HOME/.local/bin}"
 DATA_DIR="${TUBE2DVD_DIR:-$HOME/Videos/tube2dvd}"
-PORT="8769"
+PORT="4000"
 COPY=0
 CHECK=0
 NO_INSTALL=0
@@ -68,6 +68,7 @@ info "Nu: $NEW"
 
 if [[ $NO_INSTALL -eq 0 ]]; then
   args=(--prefix "$PREFIX" --dir "$DATA_DIR" --port "$PORT" --no-deps)
+  [[ -f "${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user/tube2dvd.service" ]] && args+=(--systemd)
   [[ $COPY -eq 1 ]] && args+=(--copy)
   [[ $YES -eq 1 ]] && args+=(-y)
   "$SRC_DIR/install.sh" "${args[@]}"

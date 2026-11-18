@@ -21,9 +21,11 @@ Controleer bij twijfel met `./tube2dvd.py doctor`.
 ## Plakboek-app in de browser (voor gebruikers)
 
 ```bash
-./tube2dvd.py serve                 # http://127.0.0.1:8765/
-./tube2dvd.py serve --port 9000 --host 0.0.0.0
-./tube2dvd.py serve --port 8769 --tailscale   # luister op het Tailscale-IP van deze machine
+./install.sh --systemd              # user-service: altijd op 0.0.0.0:4000
+systemctl --user status tube2dvd.service
+./tube2dvd.py serve                 # http://127.0.0.1:4000/
+./tube2dvd.py serve --host 0.0.0.0 --port 4000
+./tube2dvd.py serve --port 4000 --tailscale   # luister op het Tailscale-IP van deze machine
 ```
 
 Formulier met: YouTube-URL + categorie, nieuws ophalen (volledige artikelen

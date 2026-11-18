@@ -94,15 +94,18 @@ De nieuwsplugin staat standaard op
 ```bash
 git clone https://github.com/michielturmel-max/tube2dvd.git
 cd tube2dvd
-./install.sh
+./install.sh --systemd --dir ~/Videos/dvd-2026
 tube2dvd --json doctor
-tube2dvd --json -d ~/Videos/dvd-2026 serve --port 8769
 ```
 
-Open daarna `http://127.0.0.1:8769/`. Voor je telefoon in hetzelfde netwerk:
-`./tube2dvd.py --json -d ~/Videos/dvd-2026 serve --port 8769 --tailscale` en open
-het Tailscale-IP of de MagicDNS-naam van de machine, bijvoorbeeld
-`http://jouw-machine.tailXXXX.ts.net:8769/`.
+De app draait nu op poort **4000**, ook na een herstart:
+
+- op de computer: `http://127.0.0.1:4000/`
+- op je telefoon via Tailscale: `http://<tailscale-ip>:4000/` of
+  `http://jouw-machine.tailXXXX.ts.net:4000/`
+
+De service luistert op `0.0.0.0`, dus andere apparaten in het netwerk kunnen de
+poort ook bereiken. Zie [Altijd op de achtergrond](#altijd-op-de-achtergrond-systemd).
 
 ## Installeren
 
@@ -111,7 +114,8 @@ systeempakketten ontbreken.
 
 ```bash
 ./install.sh                         # symlink in ~/.local/bin + desktop-launcher
-./install.sh --port 9000             # andere poort
+./install.sh --systemd               # + user-service: altijd op poort 4000
+./install.sh --port 4001             # andere poort
 ./install.sh --dir ~/Videos/mijn-dvd # andere bibliotheekmap
 ./install.sh --copy                  # kopie i.p.v. symlink
 ./install.sh --no-deps --no-desktop  # alleen de command installeren
@@ -131,9 +135,39 @@ Wat het doet:
    `~/.local/share/applications/tube2dvd.desktop`: start de server als die nog
    niet draait en opent de browser.
 4. Maakt de bibliotheekmap en de `build/`-submap aan.
+5. Met `--systemd`: schrijft `~/.config/systemd/user/tube2dvd.service`, laadt
+   systemd opnieuw, schakelt de service in en start hem (of herstart hem als hij
+   al draaide).
 
 `~/.local/bin` moet in je `PATH` zitten. Op Omarchy is dat meestal al zo;
 anders: `export PATH="$HOME/.local/bin:$PATH"` in je shellprofiel.
+
+## Altijd op de achtergrond (systemd)
+
+Met `./install.sh --systemd` komt er een **user-service** in
+`~/.config/systemd/user/tube2dvd.service`. Die start de app met
+`--host 0.0.0.0 --port 4000`, gebruikt je bibliotheekmap via `TUBE2DVD_DIR` en
+heeft `Restart=always`: als de app crasht of de computer opnieuw start, komt hij
+vanzelf terug. De service hoeft geen root te zijn.
+
+```bash
+systemctl --user status tube2dvd.service      # status en Recentste logs
+systemctl --user restart tube2dvd.service     # na een code-wijziging
+systemctl --user stop tube2dvd.service        # tijdelijk stoppen
+systemctl --user disable --now tube2dvd.service  # definitief uitzetten
+journalctl --user -u tube2dvd.service -f      # live logs
+```
+
+Wil je dat de service ook draait als je niet ingelogd bent, controleer dan:
+
+```bash
+loginctl show-user "$USER" -p Linger
+# zo nodig (eenmalig, met root): sudo loginctl enable-linger "$USER"
+```
+
+De uninstaller verwijdert de service met `./uninstall.sh --systemd` (stoppen,
+uitschakelen en bestand weghalen); je data blijft dan gewoon staan. `update.sh`
+merkt een bestaande service automatisch op en herstart hem na de update.
 
 ## Bijwerken
 
@@ -196,10 +230,13 @@ geeft snel *Disk quota exceeded* bij ISO-bouw.
 
 ## De web-app
 
+Meestal is niets nodig: de systemd-service luistert al op `0.0.0.0:4000`. Handmatig
+starten kan ook:
+
 ```bash
-tube2dvd --json -d ~/Videos/dvd-2026 serve --port 8769
-tube2dvd --json -d ~/Videos/dvd-2026 serve --port 8769 --tailscale
-tube2dvd --json -d ~/Videos/dvd-2026 serve --port 9000 --host 0.0.0.0
+tube2dvd --json -d ~/Videos/dvd-2026 serve --host 0.0.0.0 --port 4000
+tube2dvd --json -d ~/Videos/dvd-2026 serve --port 4000 --tailscale  # alleen via Tailscale-IP
+tube2dvd --json -d ~/Videos/dvd-2026 serve --port 4001 --host 0.0.0.0
 ```
 
 In de browser kun je:
@@ -300,7 +337,8 @@ tube2dvd --json -d ~/Videos/dvd-2026 burn --all -y         # ook al gebrande ite
 | Zwart startplaatje bij een artikelvideo | poster wordt uit het MP4 gegenereerd; controleer `thumbs/<id>-video.jpg`, anders `tube2dvd --json news --refresh` |
 | Video speelt niet op telefoon | gebruik `--tailscale`, open de Tailscale-URL en hard-refresh; range-requests en `playsinline` staan aan |
 | Nieuws blijft leeg | controleer de plugin met `TUBE2DVD_NEWS=... tube2dvd --json news --count 3` |
-| Server start niet | poort al in gebruik? kies `--port 9000`; kijk in `build/web-requests.log` en het serverlog |
+| App niet bereikbaar op 4000 | `systemctl --user status tube2dvd.service`, `journalctl --user -u tube2dvd.service -f`, `ss -ltnp '( sport = :4000 )'` |
+| Server start niet | poort al in gebruik? kies `--port 4001`; kijk in `build/web-requests.log` en het serverlog |
 
 Zie ook [AGENTS.md](AGENTS.md) voor de agent-regels en korte commando's en
 [RELEASE.md](RELEASE.md) voor het zelf maken van een tag en release via GitHub.

@@ -3135,7 +3135,7 @@ def build_parser():
 
     serve = sub.add_parser("serve", parents=[shared], help="start de plakboek-app in de browser")
     serve.add_argument("--host", default="127.0.0.1")
-    serve.add_argument("--port", type=int, default=8765)
+    serve.add_argument("--port", type=int, default=4000)
     serve.add_argument("--tailscale", action="store_true", help="luister op het Tailscale-IP")
 
     note = sub.add_parser("note", parents=[shared], help="voeg een eigen tekst toe")
